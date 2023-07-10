@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"costa92/gin-wire/config"
-	"fmt"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"go.uber.org/zap/zaptest"
@@ -26,7 +25,6 @@ func main() {
 			Port: "8080",
 		},
 	}
-	fmt.Println(conf)
 	app, cleanup, err := wireApp(conf, logger)
 	if err != nil {
 		panic(err)
