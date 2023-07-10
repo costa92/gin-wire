@@ -1,4 +1,4 @@
-package main
+package app
 
 // https://github.com/jassue/gin-wire/blob/main/cmd/app/app.go
 import (
@@ -15,7 +15,7 @@ type App struct {
 	httpSrv *http.Server
 }
 
-func newApp(conf *config.Configuration, logger *zap.Logger, httpSrv *http.Server) *App {
+func NewApp(conf *config.Configuration, logger *zap.Logger, httpSrv *http.Server) *App {
 	return &App{
 		conf:    conf,
 		logger:  logger,
@@ -45,7 +45,7 @@ func (a *App) Stop(ctx context.Context) error {
 	return nil
 }
 
-func newHttpServer(conf *config.Configuration, router *gin.Engine) *http.Server {
+func NewHttpServer(conf *config.Configuration, router *gin.Engine) *http.Server {
 	return &http.Server{
 		Addr:    ":" + conf.Server.Port,
 		Handler: router,
