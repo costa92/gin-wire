@@ -1,4 +1,4 @@
-package config
+package gin_wire
 
 import (
 	"context"

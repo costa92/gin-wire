@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"costa92/gin-wire/config"
+	"costa92/gin-wire/pkg"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"go.uber.org/zap/zaptest"
@@ -23,6 +24,10 @@ func main() {
 	conf := &config.Configuration{
 		Server: config.ServerConfig{
 			Port: "8080",
+		},
+		MasterDB: pkg.MySQLConfig{
+			Dsn:          "",
+			MaxOpenCount: 10,
 		},
 	}
 	app, cleanup, err := wireApp(conf, logger)

@@ -8,16 +8,24 @@ package main
 
 import (
 	"costa92/gin-wire/config"
+	"costa92/gin-wire/controllers"
+	"costa92/gin-wire/dbs"
 	"costa92/gin-wire/internal/app"
 	"costa92/gin-wire/routers"
+	"costa92/gin-wire/services"
 	"go.uber.org/zap"
 )
 
 // Injectors from wire.go:
 
-// wireApp init application.
 func wireApp(configuration *config.Configuration, logger *zap.Logger) (*app.App, func(), error) {
-	engine := routers.NewRouter(configuration)
+	database, err := dbs.NewDatabase(configuration)
+	if err != nil {
+		return nil, nil, err
+	}
+	apiService := services.NewApiService(configuration, database)
+	apiController := controllers.ProvideTodoApiController(configuration, apiService)
+	engine := routers.NewRouter(configuration, apiController)
 	server := app.NewHttpServer(configuration, engine)
 	appApp := app.NewApp(configuration, logger, server)
 	return appApp, func() {
