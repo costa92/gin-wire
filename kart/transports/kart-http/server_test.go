@@ -6,16 +6,22 @@ import (
 	"testing"
 )
 
-func Test_NewServer(t *testing.T) {
+func Test_GinNewServer(t *testing.T) {
 	handler := gin.Default()
-	config := &HttpConfig{}
+	config := &HttpConfig{
+		Port:          "8080",
+		Healthz:       true,
+		EnableMetrics: true,
+	}
 	src := NewServer(
-		WithHandler(handler),
+		WithGinEngin(handler),
 		WithConfig(config),
 	)
 	if src == nil {
 		t.Error("Server is nil")
 	}
 	ctx := context.WithValue(context.Background(), "test", "test")
-	src.Run(ctx)
+	if err := src.Run(ctx); err != nil {
+		t.Error(err)
+	}
 }
