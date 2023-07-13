@@ -7,6 +7,7 @@ require (
 	github.com/gin-contrib/cors v1.4.0
 	github.com/gin-gonic/gin v1.9.1
 	github.com/google/wire v0.5.0
+	github.com/segmentio/ksuid v1.0.4
 	github.com/zsais/go-gin-prometheus v0.1.0
 	golang.org/x/sync v0.2.0
 	google.golang.org/grpc v1.56.2

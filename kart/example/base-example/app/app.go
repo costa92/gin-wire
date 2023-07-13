@@ -1,7 +1,6 @@
 package app
 
 import (
-	"context"
 	"github.com/gin-gonic/gin"
 	"github.com/google/wire"
 	"kart-cloud/kart/transports"
@@ -40,17 +39,16 @@ func newSever(config *kartHttp.HttpConfig, handler *gin.Engine) (*transports.Gen
 		kartHttp.WithGinEngin(handler),
 		kartHttp.WithConfig(config),
 	)
-
 	// 运行 http 与 rpc
 	gs := transports.NewGenericAPIServer(
-		transports.WithTransport(
-			[]transports.ServerImp{httpServer},
+		transports.Server(
+			httpServer,
 		),
 	)
 
 	return gs, nil
 }
 
-func (a *App) Run(ctx context.Context) error {
-	return a.GenericAPIServer.Run(ctx)
+func (a *App) Run() error {
+	return a.GenericAPIServer.Run()
 }

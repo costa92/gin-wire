@@ -13,9 +13,9 @@ import (
 )
 
 type Server struct {
-	Config   *HttpConfig
-	GinEngin *gin.Engine
-	Server   *http.Server
+	Config     *HttpConfig
+	GinEngin   *gin.Engine
+	httpServer *http.Server
 }
 
 func NewServer(opts ...Option) *Server {
@@ -65,8 +65,13 @@ func (s *Server) InstallAPIs() {
 }
 
 func (s *Server) Start(ctx context.Context) error {
+	defer func() {
+		if err := recover(); err != nil {
+			fmt.Println("appService recover err", "err", err)
+		}
+	}()
 	serverConfig := s.Config
-	server := &http.Server{
+	s.httpServer = &http.Server{
 		Addr:           fmt.Sprintf(":%s", serverConfig.Port),
 		Handler:        s.GinEngin,
 		ReadTimeout:    time.Duration(serverConfig.ReadTimeout) * time.Second,
@@ -74,7 +79,7 @@ func (s *Server) Start(ctx context.Context) error {
 		MaxHeaderBytes: 1 << 20,
 	}
 	log.Print("start run http server:", serverConfig.Port)
-	if err := server.ListenAndServe(); err != nil {
+	if err := s.httpServer.ListenAndServe(); err != nil {
 		if !errors.Is(err, http.ErrServerClosed) { // 如果是关闭状态，不当异常处理
 			log.Print("start run failed server:", serverConfig.Port)
 			return err
@@ -84,6 +89,6 @@ func (s *Server) Start(ctx context.Context) error {
 }
 
 func (s *Server) Stop(ctx context.Context) error {
-	fmt.Println(11)
-	return nil
+	log.Print("[HTTP] server stopping")
+	return s.httpServer.Shutdown(ctx)
 }

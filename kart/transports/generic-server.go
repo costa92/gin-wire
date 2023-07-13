@@ -3,38 +3,13 @@ package transports
 import (
 	"context"
 	"github.com/costa92/errors"
+	"github.com/segmentio/ksuid"
 	"golang.org/x/sync/errgroup"
 	"os"
 	"os/signal"
 	"sync"
+	"syscall"
 )
-
-// ServerImp 公共接口
-type ServerImp interface {
-	Start(ctx context.Context) error
-	Stop(ctx context.Context) error
-}
-
-// AppInfo is application context value.
-type AppInfo interface {
-	ID() string
-	Name() string
-	Version() string
-}
-
-type GenericOption func(gs *GenericAPIServer)
-
-func WithTransport(servers []ServerImp) GenericOption {
-	return func(gs *GenericAPIServer) {
-		gs.Servers = servers
-	}
-}
-
-func WithSigs(signal []os.Signal) GenericOption {
-	return func(gs *GenericAPIServer) {
-		gs.sigs = signal
-	}
-}
 
 // ID returns app instance id.
 func (gs *GenericAPIServer) ID() string { return "" }
@@ -46,29 +21,41 @@ func (gs *GenericAPIServer) Name() string { return "" }
 func (gs *GenericAPIServer) Version() string { return "" }
 
 type GenericAPIServer struct {
-	Servers []ServerImp
-	cancel  func()
-	sigs    []os.Signal
-	ctx     context.Context
+	opts   options
+	ctx    context.Context
+	cancel func()
 }
 
 // NewGenericAPIServer 实例化
-func NewGenericAPIServer(opts ...GenericOption) *GenericAPIServer {
-	gs := &GenericAPIServer{}
-	for _, o := range opts {
-		o(gs)
+func NewGenericAPIServer(opts ...Option) *GenericAPIServer {
+	options := options{
+		ctx:           context.Background(),
+		sigs:          []os.Signal{syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGINT},
+		handleSignals: true,
 	}
-	bgCtx := context.Background()
-	gs.ctx, gs.cancel = context.WithCancel(bgCtx)
-	return gs
+	options.id = ksuid.New().String()
+	for _, o := range opts {
+		o(&options)
+	}
+	ctx, cancel := context.WithCancel(options.ctx)
+	return &GenericAPIServer{
+		ctx:    ctx,
+		cancel: cancel,
+		opts:   options,
+	}
 }
 
 // Run 开始运行
-func (gs *GenericAPIServer) Run(ctx context.Context) error {
+func (gs *GenericAPIServer) Run() error {
+	// nolint: forbidigo
+	//if _, err := maxprocs.Set(maxprocs.Logger(logger.Infof)); err != nil {
+	//	return err
+	//}
+	ctx := NewContext(gs.ctx, gs)
 	eg, ctx := errgroup.WithContext(ctx)
 	wg := sync.WaitGroup{}
-	for _, server := range gs.Servers {
-		srv := server
+	for _, srv := range gs.opts.servers {
+		srv := srv
 		eg.Go(func() error {
 			<-ctx.Done() // wait for stop signal
 			return srv.Stop(ctx)
@@ -79,10 +66,13 @@ func (gs *GenericAPIServer) Run(ctx context.Context) error {
 			return srv.Start(ctx)
 		})
 	}
-
 	wg.Wait()
 	c := make(chan os.Signal, 1)
-	signal.Notify(c, gs.sigs...)
+	// warning: you need manually call App.Stop() to stop the application if you set handleSignals to false
+	if gs.opts.handleSignals {
+		signal.Notify(c, gs.opts.sigs...)
+	}
+
 	eg.Go(func() error {
 		for {
 			select {
