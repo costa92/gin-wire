@@ -15,6 +15,7 @@ import (
 type Server struct {
 	Config   *HttpConfig
 	GinEngin *gin.Engine
+	Server   *http.Server
 }
 
 func NewServer(opts ...Option) *Server {
@@ -22,15 +23,20 @@ func NewServer(opts ...Option) *Server {
 	for _, o := range opts {
 		o(srv)
 	}
-
 	srv.initAPIServer()
-
 	return srv
 }
 
 func (s *Server) initAPIServer() {
+	s.Setup()
 	s.InstallMiddlewares()
 	s.InstallAPIs()
+}
+
+func (s *Server) Setup() {
+	gin.DebugPrintRouteFunc = func(httpMethod, absolutePath, handlerName string, nuHandlers int) {
+		log.Printf("%-6s %-s --> %s (%d handlers)", httpMethod, absolutePath, handlerName, nuHandlers)
+	}
 }
 
 func (s *Server) InstallMiddlewares() {
@@ -56,10 +62,9 @@ func (s *Server) InstallAPIs() {
 		prometheus := ginprometheus.NewPrometheus("gin")
 		prometheus.Use(s.GinEngin)
 	}
-
 }
 
-func (s *Server) Run(ctx context.Context) error {
+func (s *Server) Start(ctx context.Context) error {
 	serverConfig := s.Config
 	server := &http.Server{
 		Addr:           fmt.Sprintf(":%s", serverConfig.Port),
@@ -79,5 +84,6 @@ func (s *Server) Run(ctx context.Context) error {
 }
 
 func (s *Server) Stop(ctx context.Context) error {
+	fmt.Println(11)
 	return nil
 }

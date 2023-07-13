@@ -29,11 +29,9 @@ func InitGormV2(cfg *MySQLConfig) (*gorm.DB, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	if !opt.ParseTime {
 		log.Println("InitGormV2: parseTime is disabled")
 	}
-
 	if opt.Loc.String() != "UTC" {
 		log.Println("using non UTC timezone for parseTime", "timezone_used", opt.Loc.String())
 	} else {

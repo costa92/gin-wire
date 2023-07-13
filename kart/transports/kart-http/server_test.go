@@ -21,7 +21,7 @@ func Test_GinNewServer(t *testing.T) {
 		t.Error("Server is nil")
 	}
 	ctx := context.WithValue(context.Background(), "test", "test")
-	if err := src.Run(ctx); err != nil {
+	if err := src.Start(ctx); err != nil {
 		t.Error(err)
 	}
 }
