@@ -35,9 +35,12 @@ func (s *Server) initAPIServer() {
 }
 
 func (s *Server) Setup() {
+	gin.ForceConsoleColor()
 	gin.DebugPrintRouteFunc = func(httpMethod, absolutePath, handlerName string, nuHandlers int) {
-		log.Printf("%-6s %-s --> %s (%d handlers)", httpMethod, absolutePath, handlerName, nuHandlers)
+		logger.Infow("gin endpoint setup ", "httpMethod", httpMethod, "absolutePath",
+			absolutePath, "handlerName", handlerName, "nuHandlers", nuHandlers)
 	}
+	return
 }
 
 func (s *Server) InstallMiddlewares() {
@@ -68,7 +71,7 @@ func (s *Server) InstallAPIs() {
 func (s *Server) Start(ctx context.Context) error {
 	defer func() {
 		if err := recover(); err != nil {
-			fmt.Println("appService recover err", "err", err)
+			logger.Errorw("appService recover err", "err", err)
 		}
 	}()
 	serverConfig := s.Config
@@ -90,6 +93,6 @@ func (s *Server) Start(ctx context.Context) error {
 }
 
 func (s *Server) Stop(ctx context.Context) error {
-	log.Print("[HTTP] server stopping")
+	logger.Infow("[HTTP] server stopping")
 	return s.httpServer.Shutdown(ctx)
 }

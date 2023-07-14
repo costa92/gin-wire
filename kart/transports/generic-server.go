@@ -3,7 +3,9 @@ package transports
 import (
 	"context"
 	"github.com/costa92/errors"
+	"github.com/costa92/logger"
 	"github.com/segmentio/ksuid"
+	"go.uber.org/automaxprocs/maxprocs"
 	"golang.org/x/sync/errgroup"
 	"os"
 	"os/signal"
@@ -47,10 +49,10 @@ func NewGenericAPIServer(opts ...Option) *GenericAPIServer {
 
 // Run 开始运行
 func (gs *GenericAPIServer) Run() error {
-	// nolint: forbidigo
-	//if _, err := maxprocs.Set(maxprocs.Logger(logger.Infof)); err != nil {
-	//	return err
-	//}
+	//nolint: forbidigo
+	if _, err := maxprocs.Set(maxprocs.Logger(logger.Infof)); err != nil {
+		return err
+	}
 	ctx := NewContext(gs.ctx, gs)
 	eg, ctx := errgroup.WithContext(ctx)
 	wg := sync.WaitGroup{}
