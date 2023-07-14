@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/costa92/errors"
+	"github.com/costa92/logger"
 	"github.com/gin-gonic/gin"
 	ginprometheus "github.com/zsais/go-gin-prometheus"
 	"kart-cloud/kart/transports/kart-http/middlewares"
@@ -78,7 +79,7 @@ func (s *Server) Start(ctx context.Context) error {
 		WriteTimeout:   time.Duration(serverConfig.WriteTimeout) * time.Second,
 		MaxHeaderBytes: 1 << 20,
 	}
-	log.Print("start run http server:", serverConfig.Port)
+	logger.Infow("start run http server", "port", serverConfig.Port)
 	if err := s.httpServer.ListenAndServe(); err != nil {
 		if !errors.Is(err, http.ErrServerClosed) { // 如果是关闭状态，不当异常处理
 			log.Print("start run failed server:", serverConfig.Port)

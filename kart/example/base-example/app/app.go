@@ -39,6 +39,7 @@ func newSever(config *kartHttp.HttpConfig, handler *gin.Engine) (*transports.Gen
 		kartHttp.WithGinEngin(handler),
 		kartHttp.WithConfig(config),
 	)
+
 	// 运行 http 与 rpc
 	gs := transports.NewGenericAPIServer(
 		transports.Server(
